@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SmartBudget AI — Marketing Budget Optimization Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#f3f4f1;--card:#ffffff;--ink:#17233b;--muted:#5d6779;--border:#dfe2e6;--soft:#eef0ed;
+  --accent:#0e6b63;--accent-ink:#ffffff;--good:#17803d;--bad:#b42318;--warn:#b86a0b;--info:#2457c5;
+  --good-bg:#e4f4ea;--bad-bg:#fbe9e7;--warn-bg:#fbf0dc;--info-bg:#e6edfb;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1520;--card:#18202e;--ink:#e8ecf3;--muted:#9aa5b8;--border:#2a3446;--soft:#1e2838;
+    --accent:#3fb8a8;--accent-ink:#0b1a18;--good:#4cc27a;--bad:#f2766b;--warn:#e8a440;--info:#7aa2f7;
+    --good-bg:#16301f;--bad-bg:#3a1c19;--warn-bg:#3a2a12;--info-bg:#1b2745;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1520;--card:#18202e;--ink:#e8ecf3;--muted:#9aa5b8;--border:#2a3446;--soft:#1e2838;
+  --accent:#3fb8a8;--accent-ink:#0b1a18;--good:#4cc27a;--bad:#f2766b;--warn:#e8a440;--info:#7aa2f7;
+  --good-bg:#16301f;--bad-bg:#3a1c19;--warn-bg:#3a2a12;--info-bg:#1b2745;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:14px;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding:18px 16px 60px}
+h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.01em}
+.serif{font-family:'Source Serif 4',Georgia,'Times New Roman',serif}
+header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+header.top h1{font-size:26px}
+header.top p{margin:2px 0 0;color:var(--muted);max-width:640px}
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;background:var(--soft);color:var(--muted);border:1px solid var(--border)}
+.badge.warn{background:var(--warn-bg);color:var(--warn);border-color:transparent}
+.badge.good{background:var(--good-bg);color:var(--good);border-color:transparent}
+.badge.bad{background:var(--bad-bg);color:var(--bad);border-color:transparent}
+.badge.info{background:var(--info-bg);color:var(--info);border-color:transparent}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.controls{display:grid;gap:12px;margin-bottom:14px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.field{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted);font-weight:600}
+.field input,.field select,textarea{font:inherit;font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:7px 9px;min-width:0}
+.field input[type=number]{width:120px}
+.field input[type=range]{padding:0;width:170px;accent-color:var(--accent)}
+textarea{width:100%;min-height:110px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+button{font:inherit;font-weight:600;border-radius:7px;border:1px solid var(--border);background:var(--card);color:var(--ink);padding:7px 13px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.danger{color:var(--bad)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--info);outline-offset:1px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:99px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:13px;font-weight:600;color:var(--muted)}
+.chip.on{color:var(--ink);border-color:var(--ink)}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--border);margin-bottom:16px}
+nav.tabs button{border:0;border-bottom:3px solid transparent;border-radius:0;background:none;padding:10px 14px;color:var(--muted);white-space:nowrap}
+nav.tabs button.on{color:var(--ink);border-bottom-color:var(--accent)}
+.tab{display:none}.tab.on{display:block}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.kpi .l{font-size:12px;color:var(--muted);font-weight:600}
+.kpi .v{font-family:'Source Serif 4',Georgia,serif;font-size:26px;font-weight:600;line-height:1.2;margin-top:2px}
+.kpi .s{font-size:12px;color:var(--muted)}
+.chartbox{position:relative;height:290px}
+.chartbox.tall{height:340px}
+h2{font-size:17px;margin-bottom:4px}
+h3{font-size:14px;margin-bottom:6px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 10px}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 9px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:600;font-size:12px}
+td.l,th.l{text-align:left}
+td.wrap-t{white-space:normal;min-width:220px;text-align:left}
+tr.tot td{font-weight:700;border-top:2px solid var(--border)}
+.pos{color:var(--good)}.neg{color:var(--bad)}
+.note{padding:10px 12px;border-radius:8px;font-size:13px;background:var(--info-bg);color:var(--ink);border:1px solid var(--border)}
+.note.warn{background:var(--warn-bg)}.note.bad{background:var(--bad-bg)}.note.good{background:var(--good-bg)}
+.pipeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:14px}
+.step{border:1px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--card)}
+.step b{display:block;font-size:13px}.step span{font-size:12px;color:var(--muted)}
+.step.ok{border-left:4px solid var(--good)}.step.lo{border-left:4px solid var(--warn)}.step.wait{border-left:4px solid var(--info)}
+.split{margin-bottom:10px}
+.split .lab{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:3px}
+.bar{display:flex;height:34px;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+.bar div{display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;overflow:hidden;white-space:nowrap;min-width:0}
+.rec{border:1px solid var(--border);border-left:5px solid var(--muted);border-radius:8px;padding:12px 14px;background:var(--card)}
+.rec.inc{border-left-color:var(--good)}.rec.dec{border-left-color:var(--bad)}.rec.keep{border-left-color:var(--info)}.rec.test{border-left-color:var(--warn)}
+.rec .head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;align-items:baseline}
+.rec dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:8px 0 0;font-size:13px}
+.rec dt{color:var(--muted);font-weight:600}.rec dd{margin:0}
+.mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;margin-top:8px}
+.mini div{background:var(--soft);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--muted)}
+.mini b{display:block;color:var(--ink);font-size:14px}
+pre.report{white-space:pre-wrap;background:var(--soft);padding:12px;border-radius:8px;font-size:12.5px;max-height:420px;overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace}
+.qa{min-height:60px;white-space:pre-wrap}
+.test-ok{color:var(--good);font-weight:700}.test-bad{color:var(--bad);font-weight:700}
+ul.clean{margin:6px 0 0;padding-left:18px}ul.clean li{margin:3px 0}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+@media (max-width:600px){header.top h1{font-size:21px}.kpi .v{font-size:22px}.chartbox{height:260px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div>
+    <h1 class="serif">SmartBudget AI</h1>
+    <p>Marketing budget optimization agent. It reads your campaign data, works out which channels earn profit after ad costs, tests where the next rupee works hardest, and proposes a budget for you to approve.</p>
+  </div>
+  <div class="chips" id="badges"></div>
+</header>
+
+<section class="card controls" aria-label="Data and filters">
+  <div class="row">
+    <button class="primary" id="btnDemo">Load demo data</button>
+    <button id="btnUpload">Upload CSV / Excel</button>
+    <input type="file" id="file" accept=".csv,.txt,.xlsx,.xls" hidden>
+    <button id="btnPaste">Paste CSV</button>
+    <button id="btnTheme" title="Switch light / dark">Light / dark</button>
+    <span class="sub" style="margin:0" id="srcLabel"></span>
+  </div>
+  <div id="pasteBox" hidden>
+    <p class="sub">Columns: date, campaign, channel, spend, impressions, clicks, leads, customers, revenue, gross_margin (optional), currency (optional). Channel, spend and revenue are required.</p>
+    <textarea id="pasteTxt" placeholder="date,campaign,channel,spend,impressions,clicks,leads,customers,revenue&#10;2026-01-05,Brand Search,Search Ads,25000,90000,5000,300,60,120000"></textarea>
+    <div class="row" style="margin-top:6px"><button class="primary" id="btnPasteGo">Analyze pasted data</button></div>
+  </div>
+  <div class="row">
+    <label class="field">From<select id="fFrom"></select></label>
+    <label class="field">To<select id="fTo"></select></label>
+    <label class="field">Campaign<select id="fCamp"></select></label>
+    <label class="field">Gross margin %<input type="number" id="fMargin" min="0" max="100" step="1" value="60"></label>
+    <label class="field">Monthly budget (₹)<input type="number" id="fBudget" min="0" step="1000"></label>
+    <button id="btnBudgetReset" title="Use current monthly spend as budget">Reset budget</button>
+    <label class="field" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="fExcl" checked style="width:auto">Exclude flagged rows</label>
+  </div>
+  <div class="chips" id="chanChips" aria-label="Channels"></div>
+</section>
+
+<nav class="tabs" id="tabs" role="tablist">
+  <button data-tab="exec" class="on">Executive summary</button>
+  <button data-tab="perf">Campaign performance</button>
+  <button data-tab="opt">Budget optimizer</button>
+  <button data-tab="fc">Forecasting</button>
+  <button data-tab="rec">Recommendations</button>
+  <button data-tab="dq">Data quality &amp; tests</button>
+</nav>
+
+<main>
+<section class="tab on" id="t-exec"></section>
+<section class="tab" id="t-perf"></section>
+<section class="tab" id="t-opt"></section>
+<section class="tab" id="t-fc"></section>
+<section class="tab" id="t-rec"></section>
+<section class="tab" id="t-dq"></section>
+</main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+"use strict";
+/* ============================== helpers ============================== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const INR=n=>Number.isFinite(n)?(n<0?'-':'')+'₹'+Math.round(Math.abs(n)).toLocaleString('en-IN'):'—';
+const INR2=n=>Number.isFinite(n)?(n<0?'-':'')+'₹'+Math.abs(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
+const NUM=n=>Number.isFinite(n)?Math.round(n).toLocaleString('en-IN'):'—';
+const PCT=(n,d=2)=>Number.isFinite(n)?n.toFixed(d)+'%':'—';
+const X2=n=>Number.isFinite(n)?n.toFixed(2)+'×':'—';
+const SGN=n=>Number.isFinite(n)?(n>0?'+':n<0?'-':'')+INR(Math.abs(n)).replace('-',''):'—';
+const SPCT=n=>Number.isFinite(n)?(n>0?'+':'')+n.toFixed(1)+'%':'—';
+const cls=n=>n>0?'pos':n<0?'neg':'';
+const COLORS=['#3f5fd6','#13917f','#e08a1e','#c4443a','#8a4fc2','#2b86c5','#7b8794','#a0622d'];
+const DAY=864e5;
+const toTs=d=>Date.parse(d+'T00:00:00Z');
+
+/* ============================== demo data (synthetic) ============================== */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const DEMO={
+ 'Social Media':{spend:120000,clicks:40000,leads:2000,customers:160,revenue:320000,impressions:2500000,alpha:.6,trend:0,camps:['Instagram Reels – Prospecting','Facebook – Retargeting']},
+ 'Search Ads':{spend:100000,clicks:20000,leads:1200,customers:240,revenue:480000,impressions:400000,alpha:.65,trend:.2,camps:['Brand Search','Generic Search']},
+ 'Email Marketing':{spend:30000,clicks:10000,leads:800,customers:200,revenue:300000,impressions:120000,alpha:.35,trend:0,camps:['Welcome & Nurture Flow','Weekly Promo Newsletter']},
+ 'Video Ads':{spend:90000,clicks:30000,leads:900,customers:90,revenue:180000,impressions:1800000,alpha:.5,trend:-.25,camps:['YouTube In-stream','YouTube Shorts']},
+ 'Influencer Marketing':{spend:80000,clicks:12000,leads:600,customers:120,revenue:360000,impressions:480000,alpha:.7,trend:.1,camps:['Micro-influencers','Celebrity Collaboration']}
+};
+function distribute(total,raw){const s=sum(raw);let v=raw.map(x=>Math.round(total*x/s));const d=total-sum(v);v[v.indexOf(Math.max(...v))]+=d;return v}
+function genDemo(seed=2026){
+  const rng=mulberry32(seed),W=24,rows=[],start=Date.UTC(2026,0,5);
+  const sShare=[.6,.4],oShare=[.68,.32],fShare=[.62,.38];
+  Object.entries(DEMO).forEach(([ch,d])=>{
+    const T=n=>n*6, avg=T(d.spend)/W;
+    const sp=distribute(T(d.spend),Array.from({length:W},()=>.7+rng()*.6));
+    const rev=distribute(T(d.revenue),sp.map((s,t)=>Math.pow(s/avg,d.alpha)*(1+d.trend*(t/(W-1)-.5))*(.93+rng()*.14)));
+    const cu=distribute(T(d.customers),rev.map(r=>r*(.9+rng()*.2)));
+    const cl=distribute(T(d.clicks),sp.map(s=>Math.pow(s/avg,.9)*(.92+rng()*.16)));
+    const le=distribute(T(d.leads),cl.map(c=>c*(.9+rng()*.2)));
+    const im=distribute(T(d.impressions),cl.map(c=>c*(.9+rng()*.2)));
+    for(let t=0;t<W;t++){
+      const date=new Date(start+t*7*DAY).toISOString().slice(0,10);
+      const sp2=(v,sh)=>{const a=Math.round(v*sh[0]);return [a,v-a]};
+      const S=sp2(sp[t],sShare),R=sp2(rev[t],oShare),C=sp2(cu[t],oShare),CL=sp2(cl[t],fShare),L=sp2(le[t],fShare),I=sp2(im[t],fShare);
+      for(let k=0;k<2;k++)rows.push({date,campaign:d.camps[k],channel:ch,spend:S[k],impressions:I[k],clicks:CL[k],leads:L[k],customers:C[k],revenue:R[k],margin:NaN,currency:'INR',_bad:[]});
+    }
+  });
+  return rows;
+}
+
+/* ============================== input parsing ============================== */
+const ALIAS={date:['date','day','week','week_start','period'],campaign:['campaign','campaign_name','campaign name'],channel:['channel','marketing_channel','platform'],spend:['spend','cost','ad_spend','amount_spent','spend_inr','spend (₹)'],impressions:['impressions','impr'],clicks:['clicks'],leads:['leads'],customers:['customers','conversions','purchases','orders','new_customers'],revenue:['revenue','sales','revenue_inr','revenue (₹)'],margin:['gross_margin','margin','gross_margin_pct','gross_margin_%'],currency:['currency']};
+function parseCSV(text){const rows=[];let row=[],f='',q=false;for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c=='"'){if(text[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==','){row.push(f);f=''}else if(c=='\n'||c=='\r'){if(c=='\r'&&text[i+1]=='\n')i++;row.push(f);f='';if(row.some(x=>x.trim()!==''))rows.push(row);row=[]}else f+=c}row.push(f);if(row.some(x=>x.trim()!==''))rows.push(row);return rows}
+function normDate(v){
+  if(v instanceof Date&&!isNaN(v))return v.toISOString().slice(0,10);
+  if(typeof v==='number'&&v>20000&&v<80000)return new Date(Math.round((v-25569)*DAY)).toISOString().slice(0,10);
+  const s=String(v==null?'':v).trim(); if(!s)return null;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)){const t=Date.parse(s+'T00:00:00Z');return isNaN(t)?null:s}
+  const m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/); if(m){const t=Date.UTC(+m[3],+m[2]-1,+m[1]);const d=new Date(t);return (d.getUTCMonth()==+m[2]-1)?d.toISOString().slice(0,10):null}
+  const p=Date.parse(s); return isNaN(p)?null:new Date(p).toISOString().slice(0,10);
+}
+function mapRecords(objs){
+  if(!objs.length)throw new Error('The file has no data rows.');
+  const keys=Object.keys(objs[0]).map(k=>[k,k.toLowerCase().trim()]);
+  const col={};Object.entries(ALIAS).forEach(([f,al])=>{const hit=keys.find(([k,l])=>al.includes(l));if(hit)col[f]=hit[0]});
+  const miss=['channel','spend','revenue'].filter(f=>!col[f]);
+  if(miss.length)throw new Error('Required column(s) not found: '+miss.join(', ')+'. Found columns: '+keys.map(k=>k[0]).join(', '));
+  const warn=[];if(!col.date)warn.push('No date column found — all rows are treated as one period (2026-01-01), so trends and forecasts are unavailable.');
+  const rows=objs.map(o=>{
+    const bad=[];
+    const num=f=>{if(!col[f])return NaN;let v=o[col[f]];if(typeof v==='number')return Number.isFinite(v)?v:NaN;const s=String(v==null?'':v).trim();if(s==='')return NaN;const n=Number(s.replace(/[₹,\s]|INR|Rs\.?/gi,''));if(!Number.isFinite(n)){bad.push(f);return NaN}return n};
+    let mg=num('margin');if(Number.isFinite(mg)&&mg>1)mg/=100;
+    const ch=col.channel?String(o[col.channel]||'').trim():'';
+    const cp=col.campaign?String(o[col.campaign]||'').trim():'';
+    return {date:col.date?normDate(o[col.date]):'2026-01-01',campaign:cp||ch+' (unnamed campaign)',channel:ch,spend:num('spend'),impressions:num('impressions'),clicks:num('clicks'),leads:num('leads'),customers:num('customers'),revenue:num('revenue'),margin:mg,currency:col.currency?String(o[col.currency]||'').trim():'',_bad:bad};
+  });
+  return {rows,warn};
+}
+function validate(rows){
+  const st=rows.map(()=>({hard:[],soft:[]})),seen=new Map();
+  rows.forEach((r,i)=>{const s=st[i];
+    if(!r.channel)s.hard.push('Missing channel');
+    if(!r.date)s.hard.push('Missing or invalid date');
+    r._bad.forEach(f=>s.hard.push('Non-numeric value in "'+f+'"'));
+    ['spend','revenue'].forEach(f=>{if(!Number.isFinite(r[f])&&!r._bad.includes(f))s.hard.push('Missing '+f+' (not assumed to be zero)')});
+    ['spend','impressions','clicks','leads','customers','revenue'].forEach(f=>{if(Number.isFinite(r[f])&&r[f]<0)s.hard.push('Negative '+f)});
+    if(Number.isFinite(r.margin)&&(r.margin<0||r.margin>1))s.hard.push('Gross margin outside 0–100%');
+    if(r.currency&&!/^(inr|₹|rs\.?)$/i.test(r.currency))s.hard.push('Currency mismatch ('+r.currency+', expected INR)');
+    const f=(a,b,l)=>{if(Number.isFinite(r[a])&&Number.isFinite(r[b])&&r[a]>r[b])s.soft.push(l)};
+    f('customers','leads','Customers exceed leads');f('leads','clicks','Leads exceed clicks');f('clicks','impressions','Clicks exceed impressions');
+    if(r.spend===0&&r.revenue>0)s.soft.push('Revenue with zero spend (check attribution)');
+    const key=[r.date,r.campaign,r.channel].join('|');
+    if(seen.has(key))s.soft.push('Duplicate of row '+(seen.get(key)+1));else seen.set(key,i);
+  });
+  return st;
+}
+
+/* ============================== analytics engine ============================== */
+const FIELDS=['spend','impressions','clicks','leads','customers','revenue'];
+function aggregate(rows,keyFn,marginPct){
+  const out=new Map();
+  rows.forEach(r=>{const k=keyFn(r);let o=out.get(k);
+    if(!o){o={key:k,n:0,gp:0,dates:new Set(),assumed:false,miss:{}};FIELDS.forEach(f=>{o[f]=0;o.miss[f]=0});out.set(k,o)}
+    o.n++;o.dates.add(r.date);
+    FIELDS.forEach(f=>{if(Number.isFinite(r[f]))o[f]+=r[f];else o.miss[f]++});
+    const hasM=Number.isFinite(r.margin);if(!hasM)o.assumed=true;
+    o.gp+=(Number.isFinite(r.revenue)?r.revenue:0)*(hasM?r.margin:marginPct/100);
+  });
+  return out;
+}
+function kp(o){
+  const d=(a,b)=>(o.miss[a]===0&&o.miss[b]===0&&o[b]>0)?o[a]/o[b]:NaN;
+  return Object.assign({},o,{periods:o.dates.size,
+    ctr:d('clicks','impressions')*100,c2l:d('leads','clicks')*100,l2c:d('customers','leads')*100,c2c:d('customers','clicks')*100,
+    cpl:d('spend','leads'),cac:d('spend','customers'),roas:d('revenue','spend'),aov:d('revenue','customers'),
+    contrib:o.gp-o.spend,gpRoi:o.spend>0?o.gp/o.spend:NaN,margin:o.revenue>0?o.gp/o.revenue:NaN});
+}
+function periodInfo(dates){
+  const u=[...new Set(dates)].sort();if(!u.length)return{gap:7,days:28,factor:1,H:4,n:0};
+  const ts=u.map(toTs);let gap=7;
+  if(ts.length>1){const g=ts.slice(1).map((t,i)=>(t-ts[i])/DAY).sort((a,b)=>a-b);gap=g[Math.floor(g.length/2)]||7}
+  const days=(ts[ts.length-1]-ts[0])/DAY+gap;
+  return{gap,days,factor:28/days,H:Math.max(1,Math.round(28/gap)),n:u.length};
+}
+function median(a){const s=[...a].sort((x,y)=>x-y);return s.length?s[Math.floor(s.length/2)]:NaN}
+
+/* ============================== forecasting ============================== */
+function ols(X,y){
+  const p=X[0].length,A=Array.from({length:p},()=>Array(p+1).fill(0));
+  X.forEach((x,i)=>{for(let a=0;a<p;a++){for(let b=0;b<p;b++)A[a][b]+=x[a]*x[b];A[a][p]+=x[a]*y[i]}});
+  for(let c=0;c<p;c++){let m=c;for(let r=c+1;r<p;r++)if(Math.abs(A[r][c])>Math.abs(A[m][c]))m=r;
+    if(Math.abs(A[m][c])<1e-12)return null;[A[c],A[m]]=[A[m],A[c]];
+    for(let r=0;r<p;r++)if(r!==c){const f=A[r][c]/A[c][c];for(let k=c;k<=p;k++)A[r][k]-=f*A[c][k]}}
+  return A.map((r,i)=>r[p]/r[i]);
+}
+function fitChannel(series){
+  const n=series.length;
+  if(n<16)return{status:'insufficient',reason:'Only '+n+' time periods; at least 16 are needed to validate a model.'};
+  const sp=series.map(s=>s.spend),rv=series.map(s=>s.revenue);
+  if(sp.some(v=>!(v>0))||rv.some(v=>!(v>0)))return{status:'insufficient',reason:'Some periods have zero spend or revenue, so a log model cannot be fitted.'};
+  const mean=sum(sp)/n,cv=Math.sqrt(sum(sp.map(v=>(v-mean)**2))/n)/mean;
+  const ntr=Math.floor(n*.75),ly=rv.map(Math.log);
+  const feats={'Log-log (spend)':(i)=>[1,Math.log(sp[i])],'Log-log + trend':(i)=>[1,Math.log(sp[i]),i/n]};
+  const roasTr=sum(rv.slice(0,ntr))/sum(sp.slice(0,ntr));
+  const mape=(pred,from)=>sum(pred.map((p,j)=>Math.abs(p-rv[from+j])/rv[from+j]))/pred.length*100;
+  const baseP=sp.slice(ntr).map(s=>roasTr*s),baseM=mape(baseP,ntr);
+  const models=[];
+  Object.entries(feats).forEach(([name,fx])=>{
+    if(cv<.08&&name.startsWith('Log-log'))return;
+    const X=Array.from({length:ntr},(_,i)=>fx(i)),b=ols(X,ly.slice(0,ntr));if(!b)return;
+    const res=X.map((x,i)=>ly[i]-sum(x.map((v,k)=>v*b[k]))),sig=Math.sqrt(sum(res.map(r=>r*r))/Math.max(1,ntr-b.length));
+    const pr=[];for(let i=ntr;i<n;i++)pr.push(Math.exp(sum(fx(i).map((v,k)=>v*b[k]))+sig*sig/2));
+    models.push({name,fx,mape:mape(pr,ntr)});
+  });
+  const best=models.sort((a,b)=>a.mape-b.mape)[0];
+  const useModel=best&&best.mape<baseM*.98;
+  let full=null;
+  if(useModel){
+    const X=Array.from({length:n},(_,i)=>best.fx(i)),b=ols(X,ly);
+    if(b){const res=X.map((x,i)=>ly[i]-sum(x.map((v,k)=>v*b[k])));full={b,sig:Math.sqrt(sum(res.map(r=>r*r))/Math.max(1,n-b.length)),fx:best.fx}}
+  }
+  const roasAll=sum(rv)/sum(sp);
+  const rel=sp.map((s,i)=>Math.log(rv[i]/(roasAll*s))),rm=sum(rel)/n,bsig=Math.sqrt(sum(rel.map(r=>(r-rm)**2))/n);
+  const conf=(useModel&&full&&best.mape<15)?'Medium':'Low';
+  const hasSpend=!!(useModel&&full);
+  return{status:'ok',n,ntr,cv,baseMape:baseM,modelName:useModel&&full?best.name:'Baseline (average ROAS)',modelMape:best?best.mape:NaN,usedModel:!!(useModel&&full),
+    full,roasAll,bsig,sigma:full?full.sig:bsig,conf,alphaFit:hasSpend?full.b[1]:null,
+    note:useModel&&full?'Model beat the baseline on the held-out latest '+(n-ntr)+' periods.':'No model beat the simple baseline on held-out periods, so the baseline is used.'};
+}
+function forecastPath(fit,perSpend,H,n){
+  const out=[];
+  for(let k=1;k<=H;k++){
+    if(fit.usedModel){const x=fit.full.fx.call(null,0).length;const i=n-1+k;
+      const f=x===3?[1,Math.log(perSpend),i/n]:[1,Math.log(perSpend)];
+      out.push(Math.exp(sum(f.map((v,j)=>v*fit.full.b[j]))+fit.full.sig**2/2));
+    }else out.push(fit.roasAll*perSpend);
+  }
+  return out;
+}
+
+/* ============================== optimizer ============================== */
+function defCfg(ch){
+  const l=ch.toLowerCase();
+  if(l.includes('email'))return{alpha:.35,unc:.10,minPct:25,maxPct:150};
+  if(l.includes('influenc'))return{alpha:.7,unc:.20,minPct:25,maxPct:200};
+  if(l.includes('video'))return{alpha:.5,unc:.15,minPct:25,maxPct:200};
+  if(l.includes('search'))return{alpha:.65,unc:.06,minPct:25,maxPct:200};
+  if(l.includes('social'))return{alpha:.55,unc:.12,minPct:25,maxPct:200};
+  return{alpha:.5,unc:.15,minPct:25,maxPct:200};
+}
+function buildItems(base,P){
+  return base.map(b=>{
+    const c=P.cfg[b.key]||defCfg(b.key),a=clamp(P.alphaOf(b.key,c),.05,.95);
+    let lo=b.spend*c.minPct/100,hi=b.spend*c.maxPct/100;
+    if(P.maxChange>0){lo=Math.max(lo,b.spend*(1-P.maxChange/100));hi=Math.min(hi,b.spend*(1+P.maxChange/100))}
+    if(b.spend<=0){lo=0;hi=0}
+    return{key:b.key,s0:b.spend,rev0:b.revenue,gp0:b.gp,cust0:b.customers,a,unc:c.unc,lo,hi,
+      k:(b.spend>0&&b.gp>0)?b.gp*(1-P.risk*c.unc)/Math.pow(b.spend,a):0,bad:lo>hi+1e-9};
+  });
+}
+function optimize(items,B){
+  if(!items.length)return{ok:false,msg:'No channels with spend in the selected period.'};
+  if(items.some(i=>i.bad))return{ok:false,msg:'A channel has a minimum above its maximum. Fix the min/max % in the table.'};
+  const sLo=sum(items.map(i=>i.lo)),sHi=sum(items.map(i=>i.hi));
+  if(B<sLo-.5)return{ok:false,msg:'The minimum budgets add up to '+INR(sLo)+', more than the available '+INR(B)+'. Lower the minimums or the change limit, or raise the budget.'};
+  if(B>sHi+.5)return{ok:false,msg:'The maximum caps add up to '+INR(sHi)+', less than the available '+INR(B)+'. Raise the caps or the change limit, or lower the budget.'};
+  const xl=(i,lam)=>i.k<=0?i.lo:clamp(Math.pow(i.k*i.a/lam,1/(1-i.a)),i.lo,i.hi);
+  let lo=-25,hi=25;
+  for(let it=0;it<200;it++){const mid=(lo+hi)/2,s=sum(items.map(i=>xl(i,Math.exp(mid))));if(s>B)lo=mid;else hi=mid}
+  const lam=Math.exp((lo+hi)/2);
+  return{ok:true,x:items.map(i=>xl(i,lam)),lambda:lam};
+}
+function roundAlloc(x,items,B,step=500){
+  const r=x.map((v,i)=>clamp(Math.round(v/step)*step,items[i].lo,items[i].hi));
+  let diff=B-sum(r),guard=0;
+  while(Math.abs(diff)>.5&&guard++<50){
+    let best=-1,room=0;
+    r.forEach((v,i)=>{const rm=diff>0?items[i].hi-v:v-items[i].lo;if(rm>room){room=rm;best=i}});
+    if(best<0)break;const mv=Math.min(Math.abs(diff),room);r[best]+=diff>0?mv:-mv;diff=B-sum(r);
+  }
+  return r;
+}
+function evalAlloc(items,x,cons){
+  let rev=0,gp=0,cu=0,sp=0;
+  items.forEach((i,j)=>{const f=i.s0>0?Math.pow(x[j]/i.s0,i.a):0,h=cons?(1-i.unc):1;rev+=i.rev0*f*h;gp+=i.gp0*f*h;cu+=i.cust0*f*h;sp+=x[j]});
+  return{spend:sp,rev,gp,cust:cu,contrib:gp-sp};
+}
+function boundedProportional(w,items,B){
+  const n=w.length,x=Array(n).fill(0),fixed=Array(n).fill(false);
+  for(let g=0;g<=n;g++){
+    const rem=B-sum(x.map((v,i)=>fixed[i]?v:0)),sw=sum(w.map((v,i)=>fixed[i]?0:v));
+    if(sw<=0)break;let viol=false;
+    w.forEach((v,i)=>{if(fixed[i])return;x[i]=rem*v/sw});
+    w.forEach((v,i)=>{if(fixed[i])return;if(x[i]<items[i].lo){x[i]=items[i].lo;fixed[i]=true;viol=true}else if(x[i]>items[i].hi){x[i]=items[i].hi;fixed[i]=true;viol=true}});
+    if(!viol)break;
+  }
+  return x;
+}
+const marginal=(i,x)=>i.s0>0&&x>0?i.gp0*i.a*Math.pow(x/i.s0,i.a-1)/i.s0:NaN;
+
+/* ============================== state ============================== */
+const S={rows:[],val:[],label:'',synthetic:false,warns:[],from:'',to:'',campaign:'all',channels:new Set(),order:[],margin:60,budget:null,budgetAuto:true,
+  risk:.5,maxChange:50,excludeSoft:true,useFitted:false,cfg:{},approved:null,tab:'exec',fcChannel:null,trendMetric:'revenue',funnelCh:'all',
+  th:{inc:8,dec:8,strong:4,weak:2.5,minCust:50,minPeriods:8}};
+const D={};
+const CH={};
+
+function loadRows(rows,label,synthetic,warns){
+  S.rows=rows;S.val=validate(rows);S.label=label;S.synthetic=synthetic;S.warns=warns||[];S.approved=null;
+  S.order=[...new Set(rows.map(r=>r.channel).filter(Boolean))];S.channels=new Set(S.order);
+  S.cfg={};S.order.forEach(c=>S.cfg[c]=defCfg(c));S.campaign='all';S.budgetAuto=true;S.fcChannel=S.order[0]||null;S.funnelCh='all';
+  const ds=[...new Set(rows.filter((r,i)=>r.date&&!S.val[i].hard.length).map(r=>r.date))].sort();
+  S.from=ds[0]||'';S.to=ds[ds.length-1]||'';
+  buildControls(ds);update();
+}
+function excluded(i){const s=S.val[i];return s.hard.length>0||(S.excludeSoft&&s.soft.length>0)}
+
+function buildControls(ds){
+  const opt=(a,sel)=>a.map(d=>'<option value="'+esc(d)+'"'+(d===sel?' selected':'')+'>'+esc(d)+'</option>').join('');
+  $('#fFrom').innerHTML=opt(ds,S.from);$('#fTo').innerHTML=opt(ds,S.to);
+  const camps=[...new Set(S.rows.map(r=>r.campaign))];
+  $('#fCamp').innerHTML='<option value="all">All campaigns</option>'+camps.map(c=>'<option>'+esc(c)+'</option>').join('');
+  $('#srcLabel').textContent=S.label;
+  drawChips();
+}
+function drawChips(){
+  $('#chanChips').innerHTML=S.order.map((c,i)=>'<button class="chip '+(S.channels.has(c)?'on':'')+'" data-ch="'+esc(c)+'"><span class="dot" style="background:'+COLORS[i%COLORS.length]+'"></span>'+esc(c)+'</button>').join('');
+}
+const colorOf=c=>COLORS[Math.max(0,S.order.indexOf(c))%COLORS.length];
+
+/* ============================== compute pipeline ============================== */
+function update(){
+  S.margin=clamp(parseFloat($('#fMargin').value)||0,0,100);
+  S.excludeSoft=$('#fExcl').checked;
+  const ok=S.rows.filter((r,i)=>!excluded(i));
+  const win=ok.filter(r=>r.date>=S.from&&r.date<=S.to);
+  const view=win.filter(r=>S.channels.has(r.channel)&&(S.campaign==='all'||r.campaign===S.campaign));
+  D.ok=ok;D.win=win;D.view=view;D.per=periodInfo(win.map(r=>r.date));
+  D.chan=[...aggregate(view,r=>r.channel,S.margin).values()].map(kp).sort((a,b)=>S.order.indexOf(a.key)-S.order.indexOf(b.key));
+  D.camp=[...aggregate(view,r=>r.channel+'||'+r.campaign,S.margin).values()].map(kp);
+  D.total=kp([...aggregate(view,()=>'all',S.margin).values()][0]||(()=>{const o={key:'all',n:0,gp:0,dates:new Set(),assumed:false,miss:{}};FIELDS.forEach(f=>{o[f]=0;o.miss[f]=0});return o})());
+  // series per channel (window, all campaigns) for trends + forecasting
+  D.series={};
+  const byCD=aggregate(win,r=>r.channel+'||'+r.date,S.margin);
+  byCD.forEach(o=>{const [c,d]=o.key.split('||');(D.series[c]=D.series[c]||[]).push({date:d,spend:o.spend,revenue:o.revenue,customers:o.customers,gp:o.gp})});
+  Object.values(D.series).forEach(a=>a.sort((x,y)=>x.date<y.date?-1:1));
+  D.fits={};Object.entries(D.series).forEach(([c,s])=>D.fits[c]=fitChannel(s));
+  // optimizer baseline = window, all channels, scaled to 4 weeks
+  const f=D.per.factor;
+  D.baseRaw=[...aggregate(win,r=>r.channel,S.margin).values()].map(kp).sort((a,b)=>S.order.indexOf(a.key)-S.order.indexOf(b.key));
+  D.base=D.baseRaw.map(b=>({key:b.key,spend:b.spend*f,revenue:b.revenue*f,gp:b.gp*f,customers:b.customers*f}));
+  const baseSpend=sum(D.base.map(b=>b.spend));
+  if(S.budgetAuto||!Number.isFinite(S.budget))S.budget=Math.round(baseSpend);
+  $('#fBudget').value=Math.round(S.budget);
+  computeOpt();computeRecs();
+  renderBadges();renderTab(S.tab);
+}
+function alphaOf(key,c){
+  const ft=D.fits[key];
+  if(S.useFitted&&ft&&ft.status==='ok'&&ft.alphaFit!=null)return clamp(ft.alphaFit,.15,.9);
+  return c.alpha;
+}
+function computeOpt(){
+  const P={cfg:S.cfg,risk:S.risk,maxChange:S.maxChange,alphaOf};
+  D.items=buildItems(D.base,P);
+  const B=S.budget,cur=D.items.map(i=>i.s0);
+  const res=optimize(D.items,B);D.opt=res;D.scen=[];
+  if(!D.items.length)return;
+  const eq=D.items.map(()=>B/D.items.length);
+  const perfRaw=boundedProportional(D.base.map(b=>b.spend>0&&b.revenue>0?b.revenue/b.spend:0),D.items,B);
+  const mk=(name,x,note)=>D.scen.push({name,x,note,base:evalAlloc(D.items,x,false),cons:evalAlloc(D.items,x,true)});
+  mk('Current allocation',cur,'What you spend today');
+  mk('Equal split',eq,'Same ₹ in every channel (ignores caps)');
+  mk('ROAS-weighted',perfRaw,'Budget proportional to historical ROAS, within caps');
+  if(res.ok){D.prop=roundAlloc(res.x,D.items,B);mk('Optimized',D.prop,'Maximizes expected contribution under the response model')}
+  else D.prop=null;
+}
+
+/* ============================== recommendations engine ============================== */
+const NEXT={
+  email:'Check list size, send frequency and unsubscribe/fatigue before adding volume; email scales by audience, not by spend.',
+  influenc:'Use unique discount codes or tracked links per creator, compare creators individually, and run a holdout test to confirm sales are incremental.',
+  video:'Test new creatives and audiences in small batches; track view-through and assisted conversions before judging the channel as a whole.',
+  search:'Review impression share, keyword saturation and the split between brand and non-brand searches (brand clicks may have converted anyway).',
+  social:'Tighten audience targeting, test lookalikes and review the landing page and checkout journey.'
+};
+const nextFor=ch=>{const l=ch.toLowerCase();const k=Object.keys(NEXT).find(k=>l.includes(k));return k?NEXT[k]:'Run a small controlled test (geo or time holdout) to confirm incremental impact before scaling.'};
+function computeRecs(){
+  D.recs=[];D.rank=[];
+  if(!D.items.length)return;
+  const norm=(arr,hi)=>{const mn=Math.min(...arr.filter(Number.isFinite)),mx=Math.max(...arr.filter(Number.isFinite));return arr.map(v=>!Number.isFinite(v)?0:(mx===mn?.5:(hi?(v-mn)/(mx-mn):(mx-v)/(mx-mn))))};
+  const cs=D.baseRaw;
+  const trend=cs.map(c=>{const s=D.series[c.key]||[];if(s.length<8)return NaN;const m=Math.max(2,Math.floor(s.length/6)),last=s.slice(-m),a=sum(last.map(x=>x.revenue))/sum(last.map(x=>x.spend)),b=sum(s.map(x=>x.revenue))/sum(s.map(x=>x.spend));return a/b-1});
+  const nc=norm(cs.map(c=>c.contrib),true),nr=norm(cs.map(c=>c.roas),true),ncac=norm(cs.map(c=>c.cac),false),ncv=norm(cs.map(c=>c.c2c),true),nt=norm(trend,true),ne=norm(cs.map(c=>Math.min(c.customers,500)),true);
+  const score=cs.map((c,i)=>100*(.30*nc[i]+.25*nr[i]+.20*ncac[i]+.10*ncv[i]+.10*nt[i]+.05*ne[i]));
+  D.rank=cs.map((c,i)=>({key:c.key,score:score[i],trend:trend[i]})).sort((a,b)=>b.score-a.score);
+  const T=S.th;
+  D.items.forEach((it,j)=>{
+    const c=cs.find(x=>x.key===it.key);if(!c)return;
+    const cur=it.s0,prop=D.prop?D.prop[j]:cur,delta=prop-cur,dpct=cur>0?delta/cur*100:NaN;
+    const mC=marginal(it,cur),mP=marginal(it,prop);
+    const ft=D.fits[it.key],tr=(D.rank.find(r=>r.key===it.key)||{}).trend;
+    const lowEv=c.customers<T.minCust||c.periods<T.minPeriods;
+    let klass;
+    if(lowEv)klass='insufficient';
+    else if(mC<1||c.roas<T.weak)klass='inefficient';
+    else if(c.roas>=T.strong&&mC>1.1)klass='strong';
+    else klass='test';
+    const highUnc=it.unc>=.25;
+    let action,tone;
+    if(!D.prop){action='Hold (optimizer infeasible)';tone='keep'}
+    else if(klass==='insufficient'){action='Test before changing';tone='test'}
+    else if(dpct>=T.inc){action=highUnc?'Increase in stages':'Increase';tone='inc'}
+    else if(dpct<=-T.dec){action='Reduce';tone='dec'}
+    else{action='Maintain';tone='keep'}
+    let pts=0;if(c.customers>=200)pts++;if(c.periods>=16)pts++;if(ft&&ft.status==='ok'&&ft.usedModel)pts++;if(it.unc<.15)pts++;
+    const conf=pts>=3?'High':pts>=2?'Medium':'Low';
+    const why=[];
+    why.push(c.key+' returns '+X2(c.roas)+' revenue per ₹1 of ads and '+INR2(c.cac)+' per customer, leaving '+INR(c.contrib)+' of contribution after ads in this period ('+(c.assumed?'at the assumed '+S.margin+'% gross margin':'using supplied margins')+').');
+    if(Number.isFinite(mC))why.push('The next ₹1 added at today\'s spend is expected to return about ₹'+mC.toFixed(2)+' of gross profit'+(mC<1?' — less than the ₹1 it costs, so extra spend here destroys value.':' — '+(mC>=1.5?'well above':'above')+' break-even.'));
+    if(tone==='inc'&&it.hi<=prop+1)why.push('The recommended amount is at the channel cap/change limit, so the optimizer would add more if allowed.');
+    if(tone==='dec'&&it.lo>=prop-1)why.push('The recommended amount is at the channel minimum/change limit.');
+    if(Number.isFinite(tr)&&Math.abs(tr)>=.08)why.push('Recent ROAS is '+(tr>0?'up ':'down ')+Math.abs(tr*100).toFixed(0)+'% versus the period average.');
+    if(it.a<=.4)why.push('Returns flatten quickly here (elasticity '+it.a.toFixed(2)+'), usually because the audience is limited.');
+    const rb=[];
+    if(highUnc)rb.push('Attribution is uncertain; sales may not all be incremental.');
+    if(lowEv)rb.push('Not enough customers or time periods for a confident decision.');
+    if(ft&&ft.status!=='ok')rb.push('Forecast model not validated: '+ft.reason);
+    if(c.assumed)rb.push('Gross margin is an assumption, not verified company data.');
+    rb.push('Response curve is an estimate; observed history does not prove that spend caused sales.');
+    const ev=evalAlloc([it],[prop],false),evC=evalAlloc([it],[cur],false);
+    D.recs.push({key:it.key,c,cur,prop,delta,dpct,mC,mP,klass,action,tone,conf,why,risks:rb,next:nextFor(it.key),dContrib:ev.contrib-evC.contrib,trend:tr,unc:it.unc});
+  });
+}
+
+/* ============================== charts ============================== */
+function chart(id,type,data,opts){
+  if(!window.Chart)return;const el=document.getElementById(id);if(!el)return;
+  if(CH[id])CH[id].destroy();
+  const cs=getComputedStyle(document.documentElement);
+  Chart.defaults.color=cs.getPropertyValue('--muted').trim();Chart.defaults.borderColor=cs.getPropertyValue('--border').trim();
+  Chart.defaults.font.family="'Manrope',system-ui,sans-serif";
+  CH[id]=new Chart(el,{type,data,options:Object.assign({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:data.datasets.length>1}}},opts||{})});
+}
+const kfmt=v=>'₹'+(Math.abs(v)>=100000?(v/100000).toFixed(1)+'L':(v/1000).toFixed(0)+'k');
+const moneyTip={callbacks:{label:c=>(c.dataset.label?c.dataset.label+': ':'')+INR(c.parsed.y!==undefined&&c.chart.options.indexAxis!=='y'?c.parsed.y:c.parsed.x)}};
+function barChart(id,labels,sets,fmt,colors){
+  chart(id,'bar',{labels,datasets:sets.map((s,i)=>({label:s.label,data:s.data,backgroundColor:s.color||colors||COLORS[i]}))},
+    {plugins:{legend:{display:sets.length>1},tooltip:fmt?{callbacks:{label:c=>(c.dataset.label?c.dataset.label+': ':'')+fmt(c.parsed.y)}}:{}},scales:{y:{ticks:{callback:v=>fmt===INR?kfmt(v):v},beginAtZero:true}}});
+}
+const chColors=labels=>labels.map(colorOf);
+
+/* ============================== rendering ============================== */
+function renderBadges(){
+  const b=[];
+  if(S.synthetic)b.push('<span class="badge warn">Synthetic demo data</span>');
+  b.push('<span class="badge info">Gross margin '+S.margin+'% '+(D.total.assumed?'(assumed)':'')+'</span>');
+  const ex=S.val.filter((s,i)=>excluded(i)).length;
+  b.push('<span class="badge '+(ex?'warn':'good')+'">'+ex+' row'+(ex===1?'':'s')+' excluded</span>');
+  $('#badges').innerHTML=b.join('');
+}
+function noData(){return '<div class="card empty">No usable rows for this selection. Load data, widen the date range or switch a channel back on.</div>'}
+const th=(a)=>'<tr>'+a.map((h,i)=>'<th'+(i===0?'':'')+'>'+h+'</th>').join('')+'</tr>';
+
+function renderTab(t){
+  S.tab=t;
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('on',s.id==='t-'+t));
+  ({exec:rExec,perf:rPerf,opt:rOpt,fc:rFc,rec:rRec,dq:rDq})[t]();
+}
+
+/* ---------- Executive ---------- */
+function splitBar(lab,vals,keys,total){
+  return '<div class="split"><div class="lab">'+lab+'</div><div class="bar">'+vals.map((v,i)=>'<div style="width:'+(total>0?v/total*100:0)+'%;background:'+colorOf(keys[i])+'" title="'+esc(keys[i])+': '+INR(v)+'">'+(total>0&&v/total>.1?esc(keys[i].split(' ')[0])+' '+Math.round(v/total*100)+'%':'')+'</div>').join('')+'</div></div>';
+}
+function rExec(){
+  const el=$('#t-exec');
+  if(!D.chan.length){el.innerHTML=noData();return}
+  const T=D.total,fits=Object.values(D.fits),valid=fits.filter(f=>f.status==='ok'&&f.usedModel).length;
+  const stp=(c,t,s)=>'<div class="step '+c+'"><b>'+t+'</b><span>'+s+'</span></div>';
+  const pipe='<div class="pipeline">'+
+    stp('ok','1 · Data input',NUM(S.rows.length)+' rows read, '+S.val.filter((s,i)=>excluded(i)).length+' excluded')+
+    stp('ok','2 · Analytics',D.chan.length+' channels, '+D.camp.length+' campaigns scored')+
+    stp(valid?'ok':'lo','3 · Prediction',valid?valid+' of '+fits.length+' channels use a validated model':'Baseline only — low confidence')+
+    stp(D.opt&&D.opt.ok?'ok':'lo','4 · Optimizer',D.opt&&D.opt.ok?'Plan found, budget balanced':'No feasible plan')+
+    stp('ok','5 · Recommendations',D.recs.length+' channel recommendations')+
+    stp(S.approved?'ok':'wait','6 · Human approval',S.approved?'Approved '+S.approved.time:'Waiting for your decision')+'</div>';
+  const k=(l,v,s)=>'<div class="kpi"><div class="l">'+l+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div></div>';
+  const kpis='<div class="kpis">'+
+    k('Total ad spend',INR(T.spend),D.per.n+' periods in range')+k('Total revenue',INR(T.revenue),'Before costs')+
+    k('Customers acquired',NUM(T.customers),'Blended conv. '+PCT(T.c2c))+k('Overall ROAS',X2(T.roas),'Revenue ÷ spend, not profit')+
+    k('Blended CAC',INR2(T.cac),'Spend ÷ customers')+k('Gross profit',INR(T.gp),PCT(T.margin*100,0)+' of revenue')+
+    k('Contribution after ads',INR(T.contrib),'Excludes other operating costs')+'</div>';
+  const cur=D.base.map(b=>b.spend),keys=D.base.map(b=>b.key);
+  let shift='';
+  if(D.prop)shift='<div class="card"><h2>Where the budget moves</h2><p class="sub">Same total, different split. Monthly amounts; the plan needs your approval before anything changes.</p>'+splitBar('Today · '+INR(sum(cur)),cur,keys,sum(cur))+splitBar('Proposed · '+INR(sum(D.prop)),D.prop,keys,sum(D.prop))+'<div class="chips">'+keys.map(k=>'<span class="badge"><span class="dot" style="background:'+colorOf(k)+'"></span> '+esc(k)+'</span>').join('')+'</div></div>';
+  else shift='<div class="card"><h2>Where the budget moves</h2><div class="note bad">'+esc(D.opt.msg||'')+'</div></div>';
+  const head=D.recs.slice().sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta)).slice(0,4).map(r=>'<li><b>'+esc(r.key)+':</b> '+esc(r.action.toLowerCase())+(Math.abs(r.delta)>1?' ('+SGN(r.delta)+' a month)':'')+' — ROAS '+X2(r.c.roas)+', CAC '+INR(r.c.cac)+'.</li>').join('');
+  const opt=D.scen.find(s=>s.name==='Optimized'),curS=D.scen[0];
+  const gain=opt?'<p style="margin:8px 0 0">Expected contribution moves from <b>'+INR(curS.base.contrib)+'</b> to <b>'+INR(opt.base.contrib)+'</b> per month (<b class="'+cls(opt.base.contrib-curS.base.contrib)+'">'+SGN(opt.base.contrib-curS.base.contrib)+'</b>); under the cautious view <b>'+INR(opt.cons.contrib)+'</b> versus <b>'+INR(curS.cons.contrib)+'</b>. These are model estimates, not guarantees.</p>':'';
+  el.innerHTML=pipe+kpis+'<div class="grid g2">'+shift+'<div class="card"><h2>What the agent found</h2><ul class="clean">'+head+'</ul>'+gain+'</div></div>'+
+    '<div class="grid g2" style="margin-top:14px"><div class="card"><h2>Spend and revenue by channel</h2><div class="chartbox"><canvas id="c1"></canvas></div></div><div class="card"><h2>Contribution after ads</h2><p class="sub">Gross profit minus ad spend. Excludes salaries, rent, shipping and other costs, so it is not net profit.</p><div class="chartbox"><canvas id="c2"></canvas></div></div></div>';
+  const lb=D.chan.map(c=>c.key);
+  barChart('c1',lb,[{label:'Spend',data:D.chan.map(c=>c.spend),color:'#7b8794'},{label:'Revenue',data:D.chan.map(c=>c.revenue),color:'#13917f'}],INR,null);
+  barChart('c2',lb,[{label:'Contribution',data:D.chan.map(c=>c.contrib),color:chColors(lb)}],INR);
+}
+
+/* ---------- Performance ---------- */
+function trendHtml(v){return Number.isFinite(v)?'<span class="'+cls(v)+'">'+SPCT(v*100)+'</span>':'—'}
+function rPerf(){
+  const el=$('#t-perf');if(!D.chan.length){el.innerHTML=noData();return}
+  const rk=Object.fromEntries(D.rank.map((r,i)=>[r.key,{i:i+1,s:r.score,t:r.trend}]));
+  const klass=Object.fromEntries(D.recs.map(r=>[r.key,r.klass]));
+  const badge=k=>({strong:'<span class="badge good">Strong</span>',inefficient:'<span class="badge bad">Inefficient</span>',test:'<span class="badge warn">Needs testing</span>',insufficient:'<span class="badge">Not enough data</span>'}[k]||'—');
+  const rows=D.chan.map(c=>'<tr><td>'+esc(c.key)+'</td><td>'+(rk[c.key]?rk[c.key].i+' ('+rk[c.key].s.toFixed(0)+')':'—')+'</td><td>'+INR(c.spend)+'</td><td>'+INR(c.revenue)+'</td><td>'+NUM(c.customers)+'</td><td>'+PCT(c.c2c)+'</td><td>'+INR2(c.cpl)+'</td><td>'+INR2(c.cac)+'</td><td>'+X2(c.roas)+'</td><td>'+INR(c.gp)+'</td><td class="'+cls(c.contrib)+'">'+INR(c.contrib)+'</td><td>'+trendHtml(rk[c.key]&&rk[c.key].t)+'</td><td class="l">'+badge(klass[c.key])+'</td></tr>').join('');
+  const T=D.total;
+  const tot='<tr class="tot"><td>All channels</td><td></td><td>'+INR(T.spend)+'</td><td>'+INR(T.revenue)+'</td><td>'+NUM(T.customers)+'</td><td>'+PCT(T.c2c)+'</td><td>'+INR2(T.cpl)+'</td><td>'+INR2(T.cac)+'</td><td>'+X2(T.roas)+'</td><td>'+INR(T.gp)+'</td><td class="'+cls(T.contrib)+'">'+INR(T.contrib)+'</td><td></td><td></td></tr>';
+  const camp=D.camp.slice().sort((a,b)=>b.contrib-a.contrib).map(c=>{const [ch,cp]=c.key.split('||');return '<tr><td>'+esc(cp)+'</td><td class="l">'+esc(ch)+'</td><td>'+INR(c.spend)+'</td><td>'+NUM(c.customers)+'</td><td>'+INR2(c.cac)+'</td><td>'+X2(c.roas)+'</td><td>'+PCT(c.c2c)+'</td><td class="'+cls(c.contrib)+'">'+INR(c.contrib)+'</td></tr>'}).join('');
+  const chOpts='<option value="all">All channels</option>'+D.chan.map(c=>'<option'+(S.funnelCh===c.key?' selected':'')+'>'+esc(c.key)+'</option>').join('');
+  el.innerHTML='<div class="card"><h2>Channel scorecard</h2><p class="sub">Rank score blends contribution (30%), ROAS (25%), CAC (20%), conversion (10%), recent trend (10%) and evidence (5%) — never ROAS alone. Conversion = customers ÷ clicks. ROAS is revenue-based; contribution is profit-based.</p><div class="tbl"><table><thead>'+th(['Channel','Rank (score)','Spend','Revenue','Customers','Conv. rate','CPL','CAC','ROAS','Gross profit','Contribution','Recent ROAS trend','Status'])+'</thead><tbody>'+rows+tot+'</tbody></table></div></div>'+
+  '<div class="grid g2" style="margin-top:14px"><div class="card"><h2>Spend versus revenue</h2><div class="chartbox"><canvas id="p1"></canvas></div></div><div class="card"><h2>Customer acquisition cost</h2><p class="sub">Lower is better.</p><div class="chartbox"><canvas id="p2"></canvas></div></div>'+
+  '<div class="card"><h2>Return on ad spend</h2><p class="sub">Dashed line = break-even ROAS (1 ÷ gross margin): below it, ads lose money before any other cost.</p><div class="chartbox"><canvas id="p3"></canvas></div></div><div class="card"><h2>Contribution by channel</h2><div class="chartbox"><canvas id="p4"></canvas></div></div>'+
+  '<div class="card"><div class="row" style="justify-content:space-between"><h2>Conversion funnel</h2><label class="field"><select id="funnelSel">'+chOpts+'</select></label></div><p class="sub">Log scale so every stage stays visible.</p><div class="chartbox"><canvas id="p5"></canvas></div><div id="funnelRates" class="sub"></div></div>'+
+  '<div class="card"><h2>Campaign leaderboard</h2><div class="tbl"><table><thead>'+th(['Campaign','Channel','Spend','Customers','CAC','ROAS','Conv.','Contribution'])+'</thead><tbody>'+camp+'</tbody></table></div></div></div>';
+  const lb=D.chan.map(c=>c.key);
+  barChart('p1',lb,[{label:'Spend',data:D.chan.map(c=>c.spend),color:'#7b8794'},{label:'Revenue',data:D.chan.map(c=>c.revenue),color:'#13917f'}],INR);
+  barChart('p2',lb,[{label:'CAC',data:D.chan.map(c=>c.cac),color:chColors(lb)}],INR2);
+  const be=S.margin>0?100/S.margin:NaN;
+  chart('p3','bar',{labels:lb,datasets:[{type:'bar',label:'ROAS',data:D.chan.map(c=>c.roas),backgroundColor:chColors(lb)},{type:'line',label:'Break-even ROAS',data:lb.map(()=>be),borderColor:'#c4443a',borderDash:[6,4],pointRadius:0,borderWidth:2}]},{scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'×'}}}});
+  barChart('p4',lb,[{label:'Contribution',data:D.chan.map(c=>c.contrib),color:chColors(lb)}],INR);
+  const fa=S.funnelCh==='all'?D.total:D.chan.find(c=>c.key===S.funnelCh)||D.total;
+  const st=[['Impressions','impressions'],['Clicks','clicks'],['Leads','leads'],['Customers','customers']].filter(([,f])=>fa.miss[f]===0&&fa[f]>0);
+  chart('p5','bar',{labels:st.map(s=>s[0]),datasets:[{label:'Count',data:st.map(s=>fa[s[1]]),backgroundColor:['#7b8794','#3f5fd6','#e08a1e','#13917f']}]},{indexAxis:'y',scales:{x:{type:'logarithmic',ticks:{callback:v=>[1,10,100,1000,1e4,1e5,1e6,1e7].includes(v)?NUM(v):''}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>NUM(c.parsed.x)}}}});
+  $('#funnelRates').textContent='CTR '+PCT(fa.ctr)+' · click→lead '+PCT(fa.c2l)+' · lead→customer '+PCT(fa.l2c)+' · click→customer '+PCT(fa.c2c);
+}
+
+/* ---------- Optimizer ---------- */
+function rOpt(){
+  const el=$('#t-opt');if(!D.items.length){el.innerHTML=noData();return}
+  const cfgRows=D.items.map((it,j)=>{const c=S.cfg[it.key];return '<tr><td>'+esc(it.key)+'</td><td><input type="number" data-ch="'+esc(it.key)+'" data-f="minPct" value="'+c.minPct+'" min="0" max="500" style="width:72px"></td><td><input type="number" data-ch="'+esc(it.key)+'" data-f="maxPct" value="'+c.maxPct+'" min="0" max="1000" style="width:72px"></td><td><input type="number" data-ch="'+esc(it.key)+'" data-f="alpha" value="'+c.alpha+'" min="0.05" max="0.95" step="0.05" style="width:72px"></td><td><input type="number" data-ch="'+esc(it.key)+'" data-f="unc" value="'+c.unc+'" min="0" max="0.6" step="0.01" style="width:72px"></td><td id="bd'+j+'" class="l"></td></tr>'}).join('');
+  el.innerHTML='<div class="card"><h2>Optimization settings</h2><p class="sub">The optimizer maximizes expected contribution after ads. Each channel follows a diminishing-returns curve: gross profit = today\'s gross profit × (new spend ÷ today\'s spend)^elasticity. A lower elasticity means the channel saturates faster.</p>'+
+  '<div class="row"><label class="field">Risk preference: <span id="riskLbl"></span><input type="range" id="sRisk" min="0" max="1" step="0.05" value="'+S.risk+'"></label>'+
+  '<label class="field">Max change per channel (± %)<input type="number" id="sChg" min="0" max="500" value="'+S.maxChange+'"></label>'+
+  '<label class="field" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="sFit" style="width:auto" '+(S.useFitted?'checked':'')+'>Use elasticity fitted from history when validated</label></div>'+
+  '<p class="sub" style="margin-top:8px">Risk 0 = trust historical results fully. Risk 1 = discount each channel\'s expected return by its uncertainty %, which protects against over-trusting weak attribution. Elasticity and uncertainty are editable assumptions, not measurements.</p>'+
+  '<div class="tbl"><table><thead>'+th(['Channel','Min % of today','Max % of today','Elasticity','Uncertainty (0–1)','Allowed range (₹/month)'])+'</thead><tbody>'+cfgRows+'</tbody></table></div></div>'+
+  '<div id="optOut"></div>';
+  $('#riskLbl').textContent=S.risk.toFixed(2);
+  D.items.forEach((it,j)=>{const e=$('#bd'+j);if(e)e.textContent=INR(it.lo)+' – '+INR(it.hi)});
+  drawOptOut();
+}
+function drawOptOut(){
+  const el=$('#optOut');if(!el)return;
+  if(!D.opt.ok){el.innerHTML='<div class="card" style="margin-top:14px"><div class="note bad"><b>No feasible plan.</b> '+esc(D.opt.msg)+'</div></div>';return}
+  const keys=D.items.map(i=>i.key),B=S.budget,tot=sum(D.prop),resid=B-tot;
+  const rows=D.recs.map(r=>'<tr><td>'+esc(r.key)+'</td><td>'+INR(r.cur)+'</td><td><b>'+INR(r.prop)+'</b></td><td class="'+cls(r.delta)+'">'+SGN(r.delta)+'</td><td class="'+cls(r.delta)+'">'+SPCT(r.dpct)+'</td><td>₹'+(Number.isFinite(r.mC)?r.mC.toFixed(2):'—')+'</td><td>₹'+(Number.isFinite(r.mP)?r.mP.toFixed(2):'—')+'</td><td class="l"><span class="badge '+({inc:'good',dec:'bad',keep:'info',test:'warn'}[r.tone])+'">'+esc(r.action)+'</span></td></tr>').join('');
+  const verify=Math.abs(resid)<1?'<span class="badge good">Verified: proposed total = available budget ('+INR(B)+')</span>':'<span class="badge warn">Rounding residual '+INR(resid)+'</span>';
+  const sc=D.scen.map(s=>'<tr><td>'+esc(s.name)+'<div class="sub" style="margin:0">'+esc(s.note)+'</div></td><td>'+INR(s.base.spend)+'</td><td>'+INR(s.base.rev)+'</td><td>'+NUM(s.base.cust)+'</td><td class="'+cls(s.base.contrib)+'"><b>'+INR(s.base.contrib)+'</b></td><td>'+INR(s.cons.contrib)+'</td><td class="'+cls(s.base.contrib-D.scen[0].base.contrib)+'">'+(s===D.scen[0]?'—':SGN(s.base.contrib-D.scen[0].base.contrib))+'</td></tr>').join('');
+  const appr=S.approved&&S.approved.sig===sigOf()?'<div class="note good"><b>Approved</b> on '+esc(S.approved.time)+'. Nothing was changed automatically — apply these budgets in your ad platforms yourself.</div>':(S.approved?'<div class="note warn">Settings changed since you approved. Review the new plan and approve again.</div>':'<div class="note">Review the plan, then approve or hold. Approving only records your decision here; SmartBudget AI never changes real ad budgets.</div>');
+  el.innerHTML='<div class="card" style="margin-top:14px"><div class="row" style="justify-content:space-between"><h2>Current versus proposed budget (per month)</h2>'+verify+'</div><p class="sub">Amounts rounded to ₹500 inside each channel\'s limits. Marginal return = extra gross profit from the next ₹1 (₹1.00 is break-even).</p><div class="tbl"><table><thead>'+th(['Channel','Current','Proposed','Change','Change %','Marginal ₹ now','Marginal ₹ proposed','Action'])+'</thead><tbody>'+rows+'<tr class="tot"><td>Total</td><td>'+INR(sum(D.items.map(i=>i.s0)))+'</td><td>'+INR(tot)+'</td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>'+
+  '<div class="row" style="margin-top:12px"><button class="primary" id="btnApprove">Approve this plan</button><button id="btnHold">Hold / reject</button></div><div style="margin-top:10px">'+appr+'</div></div>'+
+  '<div class="grid g2" style="margin-top:14px"><div class="card"><h2>Current versus proposed</h2><div class="chartbox"><canvas id="o1"></canvas></div></div><div class="card"><h2>Increase or decrease per channel</h2><div class="chartbox"><canvas id="o2"></canvas></div></div>'+
+  '<div class="card"><h2>Scenario comparison</h2><p class="sub">Expected = response curves as estimated. Cautious = each channel\'s return discounted by its uncertainty.</p><div class="tbl"><table><thead>'+th(['Scenario','Spend','Revenue','Customers','Contribution (expected)','Contribution (cautious)','vs current'])+'</thead><tbody>'+sc+'</tbody></table></div></div>'+
+  '<div class="card"><h2>Contribution by scenario</h2><div class="chartbox"><canvas id="o3"></canvas></div></div>'+
+  '<div class="card" style="grid-column:1/-1"><h2>Diminishing returns: value of the next ₹1</h2><p class="sub">Marginal gross profit per extra ₹1 as spend moves from 25% to 200% of today. Where a line drops below 1.00, extra spend loses money. Dots mark today (hollow) and proposed (solid).</p><div class="chartbox tall"><canvas id="o4"></canvas></div></div></div>';
+  barChart('o1',keys,[{label:'Current',data:D.items.map(i=>i.s0),color:'#7b8794'},{label:'Proposed',data:D.prop,color:'#0e6b63'}],INR);
+  barChart('o2',keys,[{label:'Change',data:D.recs.map(r=>r.delta),color:D.recs.map(r=>r.delta>=0?'#17803d':'#c4443a')}],INR);
+  barChart('o3',D.scen.map(s=>s.name),[{label:'Expected',data:D.scen.map(s=>s.base.contrib),color:'#0e6b63'},{label:'Cautious',data:D.scen.map(s=>s.cons.contrib),color:'#e08a1e'}],INR);
+  const xs=[];for(let m=.25;m<=2.001;m+=.125)xs.push(+m.toFixed(3));
+  const ds=D.items.map((it,j)=>({label:it.key,data:xs.map(m=>({x:m*100,y:marginal(it,it.s0*m)})),borderColor:colorOf(it.key),backgroundColor:colorOf(it.key),pointRadius:0,tension:.2,borderWidth:2}));
+  D.items.forEach((it,j)=>{
+    ds.push({label:it.key+' today',data:[{x:100,y:marginal(it,it.s0)}],borderColor:colorOf(it.key),backgroundColor:'transparent',pointRadius:6,showLine:false,type:'scatter'});
+    ds.push({label:it.key+' proposed',data:[{x:D.prop[j]/it.s0*100,y:marginal(it,D.prop[j])}],borderColor:colorOf(it.key),backgroundColor:colorOf(it.key),pointRadius:6,showLine:false,type:'scatter'});
+  });
+  ds.push({label:'Break-even (₹1.00)',data:xs.map(m=>({x:m*100,y:1})),borderColor:'#c4443a',borderDash:[6,4],pointRadius:0,borderWidth:2});
+  chart('o4','line',{datasets:ds},{parsing:false,scales:{x:{type:'linear',title:{display:true,text:'Spend as % of today'}},y:{title:{display:true,text:'Gross profit per extra ₹1'},beginAtZero:true}},plugins:{legend:{labels:{filter:i=>!/today|proposed/.test(i.text)}}}});
+}
+const sigOf=()=>D.prop?D.prop.map(Math.round).join(',')+'|'+S.budget:'';
+
+/* ---------- Forecast ---------- */
+function rFc(){
+  const el=$('#t-fc'),chs=Object.keys(D.series).filter(c=>S.order.includes(c));
+  if(!chs.length){el.innerHTML=noData();return}
+  if(!chs.includes(S.fcChannel))S.fcChannel=chs[0];
+  const H=D.per.H,rows=[];
+  D.items.forEach((it,j)=>{
+    const ft=D.fits[it.key],base=D.base.find(b=>b.key===it.key);if(!ft)return;
+    const prop=D.prop?D.prop[j]:it.s0;
+    if(ft.status!=='ok'){rows.push('<tr><td>'+esc(it.key)+'</td><td class="wrap-t" colspan="7"><span class="badge bad">Low confidence</span> '+esc(ft.reason)+' Simple estimate only: revenue ≈ today\'s level × (spend ratio)^'+it.a.toFixed(2)+'.</td></tr>');return}
+    const per=it.s0/H,path=forecastPath(ft,per,H,ft.n),cur=sum(path),aE=ft.usedModel?clamp(ft.alphaFit,.1,.95):it.a;
+    const propRev=cur*Math.pow(prop/it.s0,aE),z=1.2816*ft.sigma/Math.sqrt(H),lo=propRev*Math.exp(-z),hi=propRev*Math.exp(z);
+    const mg=base.revenue>0?base.gp/base.revenue:S.margin/100,cust=base.revenue>0?base.customers*propRev/base.revenue:NaN;
+    rows.push('<tr><td>'+esc(it.key)+'</td><td>'+INR(cur)+'</td><td>'+INR(propRev)+'<div class="sub" style="margin:0">'+INR(lo)+' – '+INR(hi)+'</div></td><td>'+NUM(cust)+'</td><td class="'+cls(propRev*mg-prop)+'">'+INR(propRev*mg-prop)+'</td><td class="l">'+esc(ft.modelName)+'</td><td>'+PCT(ft.modelMape,1)+' vs '+PCT(ft.baseMape,1)+'</td><td class="l"><span class="badge '+(ft.conf==='Medium'?'info':'bad')+'">'+ft.conf+'</span></td></tr>');
+  });
+  el.innerHTML='<div class="note warn" style="margin-bottom:14px"><b>How to read forecasts.</b> They extend past patterns; they do not prove that spend caused revenue. Models are checked on the latest 25% of periods the model never saw. Where no model beats a simple average-ROAS baseline, the baseline is used and confidence is Low. '+(S.synthetic?'<b>The demo history is synthetic.</b>':'')+'</div>'+
+  '<div class="card"><h2>Next '+(H===4?'4 weeks':H+' periods')+' at the proposed budget</h2><p class="sub">Revenue range is an approximate 80% interval from past model error. Customers assume today\'s revenue per customer. Contribution = revenue × gross margin − spend.</p><div class="tbl"><table><thead>'+th(['Channel','Revenue at current spend','Revenue at proposed spend (80% range)','Customers','Contribution','Model used','Error on held-out data (MAPE): model vs baseline','Confidence'])+'</thead><tbody>'+rows.join('')+'</tbody></table></div></div>'+
+  '<div class="grid g2" style="margin-top:14px"><div class="card"><div class="row" style="justify-content:space-between"><h2>Historical trend</h2><label class="field"><select id="trendSel">'+['revenue','spend','customers','roas','contribution'].map(m=>'<option value="'+m+'"'+(S.trendMetric===m?' selected':'')+'>'+m[0].toUpperCase()+m.slice(1)+'</option>').join('')+'</select></label></div><div class="chartbox tall"><canvas id="f1"></canvas></div></div>'+
+  '<div class="card"><div class="row" style="justify-content:space-between"><h2>Forecast</h2><label class="field"><select id="fcSel">'+chs.map(c=>'<option'+(S.fcChannel===c?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select></label></div><div class="chartbox tall"><canvas id="f2"></canvas></div><div id="fcNote" class="sub"></div></div></div>';
+  // trend chart
+  const dates=[...new Set(chs.flatMap(c=>D.series[c].map(s=>s.date)))].sort(),m=S.trendMetric;
+  const val=(s)=>m==='roas'?(s.spend>0?s.revenue/s.spend:null):m==='contribution'?s.gp-s.spend:s[m];
+  chart('f1','line',{labels:dates,datasets:chs.map(c=>({label:c,data:dates.map(d=>{const s=D.series[c].find(x=>x.date===d);return s?val(s):null}),borderColor:colorOf(c),backgroundColor:colorOf(c),pointRadius:2,tension:.25,borderWidth:2,spanGaps:true}))},{scales:{y:{ticks:{callback:v=>m==='customers'?NUM(v):m==='roas'?v+'×':kfmt(v)}}},interaction:{mode:'index',intersect:false}});
+  // forecast chart
+  const c=S.fcChannel,ft=D.fits[c],it=D.items.find(i=>i.key===c),j=D.items.findIndex(i=>i.key===c),ser=D.series[c];
+  if(!ft||ft.status!=='ok'||!it){$('#fcNote').textContent=(ft&&ft.reason)||'No forecast available.';chart('f2','line',{labels:ser.map(s=>s.date),datasets:[{label:'Revenue',data:ser.map(s=>s.revenue),borderColor:colorOf(c)}]});return}
+  const per=it.s0/H,path=forecastPath(ft,per,H,ft.n),prop=D.prop?D.prop[j]:it.s0,aE=ft.usedModel?clamp(ft.alphaFit,.1,.95):it.a,sc=Math.pow(prop/it.s0,aE),z=1.2816*ft.sigma;
+  const hist=ser.map(s=>s.revenue),fl=Array.from({length:H},(_,k)=>'Next '+(k+1)),labels=ser.map(s=>s.date).concat(fl),pad=a=>Array(hist.length-1).fill(null).concat([hist[hist.length-1]],a);
+  chart('f2','line',{labels,datasets:[
+    {label:'History',data:hist.concat(Array(H).fill(null)),borderColor:colorOf(c),backgroundColor:colorOf(c),pointRadius:2,borderWidth:2,tension:.25},
+    {label:'At current spend',data:pad(path),borderColor:'#7b8794',borderDash:[5,4],pointRadius:0,borderWidth:2},
+    {label:'At proposed spend',data:pad(path.map(v=>v*sc)),borderColor:'#0e6b63',pointRadius:0,borderWidth:2.5},
+    {label:'Upper 80%',data:pad(path.map(v=>v*sc*Math.exp(z))),borderColor:'rgba(14,107,99,.35)',pointRadius:0,borderWidth:1,fill:false},
+    {label:'Lower 80%',data:pad(path.map(v=>v*sc*Math.exp(-z))),borderColor:'rgba(14,107,99,.35)',pointRadius:0,borderWidth:1,fill:'-1',backgroundColor:'rgba(14,107,99,.12)'}
+  ]},{scales:{y:{ticks:{callback:v=>kfmt(v)}}},plugins:{legend:{labels:{filter:i=>i.text!=='Upper 80%'}}}});
+  $('#fcNote').textContent=ft.modelName+' · '+ft.note+' Spend elasticity '+(ft.usedModel?ft.alphaFit.toFixed(2)+' (fitted from history; correlation, not proof of causation)':'not estimated')+'.';
+}
+
+/* ---------- Recommendations ---------- */
+function reportText(){
+  const L=[];const opt=D.scen.find(s=>s.name==='Optimized'),cur=D.scen[0];
+  L.push('SMARTBUDGET AI — BUDGET RECOMMENDATION REPORT');
+  L.push('Generated: '+new Date().toLocaleString('en-IN')+'   Data: '+S.label+(S.synthetic?' (SYNTHETIC)':''));
+  L.push('Period: '+S.from+' to '+S.to+' ('+D.per.n+' periods). Monthly equivalents shown. Gross margin: '+S.margin+'% ('+(D.total.assumed?'assumed':'supplied')+').');
+  L.push('');
+  if(!D.prop){L.push('No feasible plan: '+(D.opt.msg||''));return L.join('\n')}
+  L.push('Monthly budget: '+INR(S.budget)+'   Proposed total: '+INR(sum(D.prop)));
+  if(opt)L.push('Expected contribution after ads: '+INR(cur.base.contrib)+' -> '+INR(opt.base.contrib)+' ('+SGN(opt.base.contrib-cur.base.contrib)+'); cautious view '+INR(cur.cons.contrib)+' -> '+INR(opt.cons.contrib));
+  L.push('');
+  D.recs.forEach(r=>{
+    L.push('* '+r.key.toUpperCase()+' — '+r.action+' (confidence: '+r.conf+')');
+    L.push('  Budget: '+INR(r.cur)+' -> '+INR(r.prop)+' ('+SGN(r.delta)+', '+SPCT(r.dpct)+')');
+    L.push('  KPIs: ROAS '+X2(r.c.roas)+', CAC '+INR2(r.c.cac)+', conversion '+PCT(r.c.c2c)+', contribution '+INR(r.c.contrib));
+    r.why.forEach(w=>L.push('  Why: '+w));
+    L.push('  Risks: '+r.risks.join(' '));
+    L.push('  Next step: '+r.next);L.push('');
+  });
+  L.push('Contribution after ads = gross profit − ad spend; it excludes other operating costs and is not net profit.');
+  L.push('Estimates come from historical association and an assumed diminishing-returns model, not proof of causation. Validate with controlled experiments. No budget is changed automatically; a manager must approve.');
+  return L.join('\n');
+}
+function recCard(r){
+  const tone={inc:'inc',dec:'dec',keep:'keep',test:'test'}[r.tone];
+  return '<div class="rec '+tone+'"><div class="head"><h3 style="margin:0">'+esc(r.key)+'</h3><span><span class="badge '+({inc:'good',dec:'bad',keep:'info',test:'warn'}[r.tone])+'">'+esc(r.action)+'</span> <span class="badge">Confidence: '+r.conf+'</span></span></div>'+
+  '<div class="mini"><div>Current<b>'+INR(r.cur)+'</b></div><div>Proposed<b>'+INR(r.prop)+'</b></div><div>Change<b class="'+cls(r.delta)+'">'+SGN(r.delta)+' ('+SPCT(r.dpct)+')</b></div><div>ROAS<b>'+X2(r.c.roas)+'</b></div><div>CAC<b>'+INR(r.c.cac)+'</b></div><div>Contribution<b>'+INR(r.c.contrib)+'</b></div></div>'+
+  '<dl><dt>Why</dt><dd>'+r.why.map(esc).join(' ')+'</dd><dt>Expected</dt><dd>'+(D.prop?'About '+SGN(r.dContrib)+' a month in contribution from this channel on its own response curve (estimate).':'—')+'</dd><dt>Risks</dt><dd>'+r.risks.map(esc).join(' ')+'</dd><dt>Next step</dt><dd>'+esc(r.next)+'</dd></dl></div>';
+}
+function rRec(){
+  const el=$('#t-rec');if(!D.recs.length){el.innerHTML=noData();return}
+  const g=k=>D.recs.filter(r=>r.klass===k).map(r=>esc(r.key)).join(', ')||'None';
+  const unc=D.recs.filter(r=>r.unc>=.25).map(r=>esc(r.key));
+  const T=S.th,f=(id,l,v,st)=>'<label class="field">'+l+'<input type="number" id="'+id+'" value="'+v+'" step="'+(st||1)+'"></label>';
+  el.innerHTML='<div class="grid g3"><div class="card"><h3>Strong campaigns</h3><p style="margin:0">'+g('strong')+'</p></div><div class="card"><h3>Potentially inefficient</h3><p style="margin:0">'+g('inefficient')+'</p></div><div class="card"><h3>Need further testing</h3><p style="margin:0">'+g('test')+(unc.length?'; verify attribution for '+unc.join(', '):'')+'</p></div></div>'+
+  '<div class="card" style="margin-top:14px"><h2>Classification thresholds</h2><p class="sub">Not fixed rules — change them to match your business. Not enough data = fewer customers or periods than the minimums.</p><div class="row">'+f('thStrong','Strong if ROAS ≥',T.strong,.1)+f('thWeak','Inefficient if ROAS <',T.weak,.1)+f('thCust','Min customers',T.minCust)+f('thPer','Min periods',T.minPeriods)+f('thInc','Increase if budget change ≥ %',T.inc)+f('thDec','Reduce if budget change ≤ −%',T.dec)+'</div></div>'+
+  '<h2 style="margin:18px 0 8px">Recommendation for each channel</h2><div class="grid g2">'+D.recs.map(recCard).join('')+'</div>'+
+  '<div class="grid g2" style="margin-top:14px"><div class="card"><h2>Ask the agent</h2><p class="sub">Answers come from the numbers above (rule-based, no external AI service needed).</p><div class="chips" style="margin-bottom:8px">'+['Which channels should get more budget?','Which channel wastes money?','What are the risks?','What if the budget goes up 10%?','What if the budget is cut 15%?'].map(q=>'<button class="chip qbtn">'+q+'</button>').join('')+'</div><div class="row"><input id="qIn" style="flex:1;min-width:180px;font:inherit;padding:7px 9px;border:1px solid var(--border);border-radius:7px;background:var(--bg);color:var(--ink)" placeholder="Type a question…"><button id="qGo" class="primary">Ask</button></div><div class="qa" id="qOut" style="margin-top:10px"></div></div>'+
+  '<div class="card"><h2>Management report</h2><div class="row" style="margin-bottom:8px"><button id="btnCopy" class="primary">Copy report</button><button id="btnApprove2">Approve plan</button><span class="sub" id="copyMsg" style="margin:0"></span></div><pre class="report" id="reportTxt"></pre></div></div>';
+  $('#reportTxt').textContent=reportText();
+}
+function answer(q){
+  const l=q.toLowerCase();
+  if(!D.recs.length)return 'Load data first.';
+  const list=a=>a.map(r=>'• '+r.key+': '+SGN(r.delta)+' ('+SPCT(r.dpct)+'), ROAS '+X2(r.c.roas)+', CAC '+INR(r.c.cac)+', next ₹1 returns ≈₹'+(Number.isFinite(r.mC)?r.mC.toFixed(2):'—')).join('\n');
+  const m=l.match(/(\d+(?:\.\d+)?)\s*%/);
+  if(/budget|spend/.test(l)&&m&&/(increase|raise|up|more|grow|cut|reduce|lower|decrease|down|less)/.test(l)){
+    const down=/(cut|reduce|lower|decrease|down|less)/.test(l),B2=S.budget*(1+(down?-1:1)*parseFloat(m[1])/100),r=optimize(D.items,B2);
+    if(!r.ok)return 'At a budget of '+INR(B2)+' the optimizer has no feasible plan: '+r.msg;
+    const x=roundAlloc(r.x,D.items,B2),e=evalAlloc(D.items,x,false),c0=D.scen[0].base,cons=evalAlloc(D.items,x,true);
+    return 'With a monthly budget of '+INR(B2)+' ('+(down?'−':'+')+m[1]+'%), the best split gives expected contribution of '+INR(e.contrib)+' ('+SGN(e.contrib-c0.contrib)+' vs today\'s '+INR(c0.contrib)+'); cautious view '+INR(cons.contrib)+'.\n'+D.items.map((i,k)=>'• '+i.key+': '+INR(x[k])).join('\n')+'\n(This is a what-if only; your main plan is unchanged.)';
+  }
+  if(/more|increase|invest|grow|scale/.test(l))return 'Channels the optimizer would grow:\n'+(list(D.recs.filter(r=>r.tone==='inc'))||'None')+(D.recs.some(r=>r.tone==='inc')?'':'None at current thresholds.');
+  if(/waste|cut|reduce|worst|ineffic|bad|poor/.test(l)){const a=D.recs.filter(r=>r.tone==='dec'||r.klass==='inefficient');return a.length?'Channels that look weakest:\n'+list(a):'No channel clearly wastes money at the current thresholds.'}
+  if(/risk|uncertain|confiden|attribution|caus/.test(l))return D.recs.map(r=>'• '+r.key+' (confidence '+r.conf+'): '+r.risks.join(' ')).join('\n');
+  if(/forecast|predict|future|next/.test(l)){const ok=Object.entries(D.fits).filter(([,f])=>f.status==='ok'&&f.usedModel).length;return ok+' of '+Object.keys(D.fits).length+' channels have a model that beat the baseline on held-out data. See the Forecasting tab for ranges; treat the rest as low-confidence estimates.'}
+  if(/profit|contribution|roas|cac/.test(l)){const T=D.total;return 'Overall ROAS '+X2(T.roas)+' (revenue-based), blended CAC '+INR2(T.cac)+', contribution after ads '+INR(T.contrib)+' at '+S.margin+'% margin. Contribution excludes other operating costs, so it is not net profit.'}
+  return 'Try: "Which channels should get more budget?", "Which channel wastes money?", "What are the risks?", or "What if the budget goes up 10%?".';
+}
+
+/* ---------- Data quality + tests ---------- */
+function runTests(){
+  const T=[],t=(n,p,d)=>T.push({n,p,d});
+  const rows=genDemo(),ag=aggregate(rows,r=>r.channel,60),f=1/6;
+  const g=k=>kp(ag.get(k)),sx=g('Search Ads');
+  t('Demo monthly totals reproduce the sample (Search spend, customers, revenue)',Math.round(sx.spend*f)===100000&&Math.round(sx.customers*f)===240&&Math.round(sx.revenue*f)===480000,INR(sx.spend*f)+' / '+NUM(sx.customers*f)+' / '+INR(sx.revenue*f));
+  t('Search Ads CAC ≈ ₹416.67',Math.abs(sx.cac-416.67)<.01,INR2(sx.cac));
+  t('Search Ads ROAS = 4.80',Math.abs(sx.roas-4.8)<1e-9,X2(sx.roas));
+  t('Search Ads contribution after ads = ₹1,88,000',Math.abs(sx.contrib*f-188000)<1,INR(sx.contrib*f));
+  t('Email CAC = ₹150 and ROAS = 10×',Math.abs(g('Email Marketing').cac-150)<.01&&Math.abs(g('Email Marketing').roas-10)<1e-9,INR2(g('Email Marketing').cac));
+  t('Video ROAS = 2.0× and contribution = ₹18,000',Math.abs(g('Video Ads').roas-2)<1e-9&&Math.abs(g('Video Ads').contrib*f-18000)<1,INR(g('Video Ads').contrib*f));
+  t('Social conversion 0.40%, Influencer contribution ₹1,36,000',Math.abs(g('Social Media').c2c-.4)<1e-9&&Math.abs(g('Influencer Marketing').contrib*f-136000)<1,PCT(g('Social Media').c2c));
+  t('Contribution is profit-based, not revenue (gross profit = revenue × 60%)',Math.abs(sx.gp-sx.revenue*.6)<1e-6,'');
+  const z=kp(Object.assign(aggregate([{date:'2026-01-01',campaign:'x',channel:'z',spend:0,impressions:0,clicks:0,leads:0,customers:0,revenue:0,margin:NaN,_bad:[]}],r=>'a',60).get('a')));
+  t('Zero spend / zero customers produce "—", not Infinity or errors',[z.cac,z.cpl,z.roas,z.c2c,z.ctr].every(v=>!Number.isFinite(v)),'CAC '+INR2(z.cac)+', ROAS '+X2(z.roas));
+  const base=[...ag.values()].map(kp).map(b=>({key:b.key,spend:b.spend*f,revenue:b.revenue*f,gp:b.gp*f,customers:b.customers*f}));
+  const P={cfg:{},risk:.5,maxChange:50,alphaOf:(k,c)=>c.alpha},it=buildItems(base,P),B=420000,r=optimize(it,B);
+  const x=r.ok?roundAlloc(r.x,it,B):[];
+  t('Optimizer total equals the ₹4,20,000 budget',r.ok&&Math.abs(sum(x)-B)<1,INR(sum(x)));
+  t('Optimizer respects every channel minimum and maximum',r.ok&&x.every((v,i)=>v>=it[i].lo-.5&&v<=it[i].hi+.5),'');
+  const cur=evalAlloc(it,it.map(i=>i.s0),false).contrib,opt=r.ok?evalAlloc(it,x,false).contrib:NaN;
+  t('Optimized contribution is not worse than the current allocation',opt>=cur-1,INR(cur)+' → '+INR(opt));
+  t('Infeasible budgets are reported, not silently violated',!optimize(it,100000).ok&&!optimize(it,2000000).ok,'');
+  const short=genDemo().filter(r=>r.channel==='Search Ads'&&r.date<'2026-03-01');
+  const sr=[...aggregate(short,r=>r.date,60).values()].map(o=>({spend:o.spend,revenue:o.revenue}));
+  t('Forecast refuses to claim reliability with too little history ('+sr.length+' periods)',fitChannel(sr).status==='insufficient','');
+  const vv=validate([{date:'2026-01-01',campaign:'a',channel:'c',spend:-5,impressions:10,clicks:5,leads:3,customers:4,revenue:100,margin:NaN,currency:'INR',_bad:[]}]);
+  t('Validation catches negative spend and customers > leads',vv[0].hard.some(s=>/Negative spend/.test(s))&&vv[0].soft.some(s=>/Customers exceed leads/.test(s)),'');
+  return T;
+}
+function rDq(){
+  const el=$('#t-dq'),n=S.rows.length;
+  const ex=S.val.filter((s,i)=>excluded(i)).length,hardN=S.val.filter(s=>s.hard.length).length,softN=S.val.filter(s=>s.soft.length&&!s.hard.length).length;
+  const dup=S.val.filter(s=>s.soft.some(m=>/Duplicate/.test(m))).length;
+  const miss={};FIELDS.forEach(f=>miss[f]=S.rows.filter(r=>!Number.isFinite(r[f])).length);
+  const issues=[];S.val.forEach((s,i)=>{if(s.hard.length||s.soft.length)issues.push('<tr><td>'+(i+1)+'</td><td class="l">'+esc(S.rows[i].channel||'—')+'</td><td class="l">'+esc(S.rows[i].date||'—')+'</td><td class="l wrap-t">'+s.hard.concat(s.soft).map(esc).join('; ')+'</td><td class="l">'+(excluded(i)?'<span class="badge bad">Excluded</span>':'<span class="badge warn">Kept (warning)</span>')+'</td></tr>')});
+  const tests=runTests();
+  el.innerHTML='<div class="kpis">'+[['Rows loaded',NUM(n),''],['Hard errors (always excluded)',NUM(hardN),'missing spend/revenue, negatives, bad dates, currency'],['Warnings',NUM(softN),'funnel inconsistencies, duplicates'],['Duplicates',NUM(dup),''],['Rows excluded now',NUM(ex),S.excludeSoft?'warnings excluded too':'warnings kept']].map(a=>'<div class="kpi"><div class="l">'+a[0]+'</div><div class="v">'+a[1]+'</div><div class="s">'+a[2]+'</div></div>').join('')+'</div>'+
+  (S.warns.length?'<div class="note warn" style="margin-bottom:14px">'+S.warns.map(esc).join('<br>')+'</div>':'')+
+  '<div class="grid g2"><div class="card"><h2>Assumptions</h2><ul class="clean"><li>Currency: Indian rupees (₹). Rows in another currency are excluded rather than converted.</li><li>Gross margin: '+S.margin+'% applied to every row without its own margin'+(S.synthetic?' (assumption, not verified company data)':'')+'.</li><li>Missing values are never replaced with zero. Rows missing spend or revenue are excluded; ratios needing a missing field show "—".</li><li>Optimizer uses all channels in the selected date range, scaled to a 4-week month ('+D.per.n+' periods, factor '+D.per.factor.toFixed(3)+'). Channel and campaign filters affect the tables and charts, not the optimizer.</li><li>Elasticities and uncertainty % are scenario assumptions you can edit; optionally replaced by values fitted from history when validated.</li><li>Revenue ROAS and contribution are different measures: contribution is gross profit minus ads and still excludes other operating costs.</li>'+(S.synthetic?'<li><b>Demo data is synthetic</b> (fixed random seed 2026): monthly averages match your sample table; weekly values were generated for demonstration.</li>':'')+'</ul>'+
+  '<h3 style="margin-top:12px">Missing values by column</h3><div class="mini">'+FIELDS.map(f=>'<div>'+f+'<b>'+miss[f]+'</b></div>').join('')+'</div></div>'+
+  '<div class="card"><h2>Self-checks</h2><p class="sub">These run against the built-in sample every time, to confirm the maths and the optimizer.</p><table><tbody>'+tests.map(x=>'<tr><td class="l wrap-t">'+esc(x.n)+(x.d?'<div class="sub" style="margin:0">'+esc(x.d)+'</div>':'')+'</td><td class="'+(x.p?'test-ok':'test-bad')+'">'+(x.p?'Pass':'Fail')+'</td></tr>').join('')+'</tbody></table></div></div>'+
+  '<div class="card" style="margin-top:14px"><h2>Flagged rows</h2>'+(issues.length?'<div class="tbl" style="max-height:340px;overflow:auto"><table><thead>'+th(['Row','Channel','Date','Issue','Status'])+'</thead><tbody>'+issues.slice(0,200).join('')+'</tbody></table></div>'+(issues.length>200?'<p class="sub">Showing the first 200 of '+issues.length+'.</p>':''):'<p class="sub" style="margin:0">No issues found in the loaded rows.</p>')+'</div>';
+}
+
+/* ============================== events ============================== */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button,.chip');if(!t)return;
+  if(t.dataset.tab){renderTab(t.dataset.tab);return}
+  if(t.dataset.ch&&t.classList.contains('chip')){const c=t.dataset.ch;S.channels.has(c)?S.channels.delete(c):S.channels.add(c);drawChips();update();return}
+  if(t.classList.contains('qbtn')){$('#qIn').value=t.textContent;$('#qOut').textContent=answer(t.textContent);return}
+  switch(t.id){
+    case 'btnDemo':loadRows(genDemo(),'Demo: SmartCart (synthetic) — 24 weeks, 5 channels, 10 campaigns',true);break;
+    case 'btnUpload':$('#file').click();break;
+    case 'btnPaste':$('#pasteBox').hidden=!$('#pasteBox').hidden;break;
+    case 'btnPasteGo':try{const p=parseCSV($('#pasteTxt').value);if(p.length<2)throw new Error('Paste a header row and at least one data row.');
+        const h=p[0],objs=p.slice(1).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]==null?'':r[i]])));const m=mapRecords(objs);loadRows(m.rows,'Pasted data — '+m.rows.length+' rows',false,m.warn);$('#pasteBox').hidden=true}catch(err){alert(err.message)}break;
+    case 'btnTheme':{const r=document.documentElement,dark=getComputedStyle(r).getPropertyValue('--bg').trim()==='#0f1520';r.setAttribute('data-theme',dark?'light':'dark');update();break}
+    case 'btnBudgetReset':S.budgetAuto=true;update();break;
+    case 'btnApprove':case 'btnApprove2':if(D.prop){S.approved={time:new Date().toLocaleString('en-IN'),sig:sigOf()};renderTab(S.tab)}break;
+    case 'btnHold':S.approved=null;renderTab(S.tab);break;
+    case 'btnCopy':{const txt=reportText();const done=()=>{$('#copyMsg').textContent='Copied.'};
+      try{navigator.clipboard.writeText(txt).then(done,()=>{selectReport()})}catch(_){selectReport()}break}
+    case 'qGo':$('#qOut').textContent=answer($('#qIn').value);break;
+  }
+});
+function selectReport(){const r=document.createRange();r.selectNodeContents($('#reportTxt'));const s=getSelection();s.removeAllRanges();s.addRange(r);$('#copyMsg').textContent='Selected — press Ctrl/Cmd+C to copy.'}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='qIn')$('#qOut').textContent=answer(e.target.value)});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='fMargin'||t.id==='fExcl'){update()}
+  else if(t.id==='fBudget'){S.budget=parseFloat(t.value)||0;S.budgetAuto=false;computeOpt();computeRecs();renderTab(S.tab)}
+  else if(t.id==='sRisk'){S.risk=parseFloat(t.value);$('#riskLbl').textContent=S.risk.toFixed(2);computeOpt();computeRecs();drawOptOut();}
+  else if(t.id==='sChg'){S.maxChange=Math.max(0,parseFloat(t.value)||0);computeOpt();computeRecs();refreshRanges();drawOptOut()}
+  else if(t.dataset&&t.dataset.f&&t.dataset.ch){const v=parseFloat(t.value);if(Number.isFinite(v)){S.cfg[t.dataset.ch][t.dataset.f]=v;computeOpt();computeRecs();refreshRanges();drawOptOut()}}
+  else if(t.id==='thStrong'||t.id==='thWeak'||t.id==='thCust'||t.id==='thPer'||t.id==='thInc'||t.id==='thDec'){
+    const m={thStrong:'strong',thWeak:'weak',thCust:'minCust',thPer:'minPeriods',thInc:'inc',thDec:'dec'},v=parseFloat(t.value);
+    if(Number.isFinite(v)){S.th[m[t.id]]=v;computeRecs();const id=t.id,pos=t.selectionStart;renderTab('rec');const n=document.getElementById(id);if(n){n.focus()}}
+  }
+});
+function refreshRanges(){D.items.forEach((it,j)=>{const e=$('#bd'+j);if(e)e.textContent=INR(it.lo)+' – '+INR(it.hi)})}
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.id==='fFrom'){S.from=t.value;if(S.from>S.to){S.to=S.from;$('#fTo').value=S.to}S.budgetAuto=true;update()}
+  else if(t.id==='fTo'){S.to=t.value;if(S.to<S.from){S.from=S.to;$('#fFrom').value=S.from}S.budgetAuto=true;update()}
+  else if(t.id==='fCamp'){S.campaign=t.value;update()}
+  else if(t.id==='sFit'){S.useFitted=t.checked;computeOpt();computeRecs();renderTab('opt')}
+  else if(t.id==='funnelSel'){S.funnelCh=t.value;renderTab('perf')}
+  else if(t.id==='trendSel'){S.trendMetric=t.value;renderTab('fc')}
+  else if(t.id==='fcSel'){S.fcChannel=t.value;renderTab('fc')}
+  else if(t.id==='file'){
+    const f=t.files[0];if(!f)return;const name=f.name.toLowerCase();
+    const fail=err=>alert('Could not read the file: '+err.message);
+    const finish=objs=>{try{const m=mapRecords(objs);loadRows(m.rows,'Uploaded: '+f.name+' — '+m.rows.length+' rows',false,m.warn)}catch(err){fail(err)}};
+    if(/\.xlsx?$/.test(name)){
+      if(typeof XLSX==='undefined'){alert('Excel support could not load. Save the sheet as CSV and upload that instead.');return}
+      f.arrayBuffer().then(buf=>{try{const wb=XLSX.read(buf,{cellDates:true});finish(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:true}))}catch(err){fail(err)}});
+    }else f.text().then(txt=>{try{const p=parseCSV(txt);if(p.length<2)throw new Error('The file needs a header row and at least one data row.');const h=p[0];finish(p.slice(1).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]==null?'':r[i]]))))}catch(err){fail(err)}});
+    t.value='';
+  }
+});
+if(!window.Chart)document.addEventListener('DOMContentLoaded',()=>{$('#badges').insertAdjacentHTML('beforeend','<span class="badge bad">Charts library did not load; tables still work</span>')});
+loadRows(genDemo(),'Demo: SmartCart (synthetic) — 24 weeks, 5 channels, 10 campaigns',true);
+</script>
+</body>
+</html>
